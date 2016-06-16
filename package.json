@@ -11,15 +11,23 @@
     "url": "git+https://github.com/patriceperez/hique.git"
   },
   "keywords": [
-    "nodejs",
-    "node",
-    "js",
     "queue",
     "job",
     "worker",
-    "redis"
+    "redis",
+    "distributed"
   ],
-  "author": "Patrice Perez",
+  "author": "Patrice Perez <perezpatrice@gmail.com>",
+  "contributors": [
+    {
+      "name": "Patrice Perez",
+      "email": "perezpatrice@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patriceperez/hique.git"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/patriceperez/hique/issues"
