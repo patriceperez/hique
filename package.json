@@ -1,0 +1,32 @@
+{
+  "name": "hique",
+  "version": "0.0.1",
+  "description": "redis backed job queue for nodejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/patriceperez/hique.git"
+  },
+  "keywords": [
+    "nodejs",
+    "node",
+    "js",
+    "queue",
+    "job",
+    "worker",
+    "redis"
+  ],
+  "author": "Patrice Perez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/patriceperez/hique/issues"
+  },
+  "homepage": "https://github.com/patriceperez/hique#readme",
+  "dependencies": {
+    "ioredis": "^2.0.1"
+  },
+  "devDependencies": {}
+}
