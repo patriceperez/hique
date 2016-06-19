@@ -4,11 +4,13 @@
   "description": "redis backed job queue for nodejs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test --recursive",
+    "test-watch": "mocha test --recursive --watch",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/patriceperez/hique.git"
+    "url": "https://github.com/patriceperez/hique.git"
   },
   "keywords": [
     "queue",
@@ -24,17 +26,18 @@
       "email": "perezpatrice@gmail.com"
     }
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/patriceperez/hique.git"
-  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/patriceperez/hique/issues"
   },
   "homepage": "https://github.com/patriceperez/hique#readme",
   "dependencies": {
-    "ioredis": "^2.0.1"
+    "ioredis": "^2.0.1",
+    "lodash": "^4.13.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.5.3"
+  }
 }
