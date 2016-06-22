@@ -2,12 +2,12 @@ var hq = require('../lib/hique');
 
 var worker = hq.Worker();
 worker.process('testJob', 5, function (job, done) {
-    console.log('executed job ' + job.id);
-    done();
+    console.log('executed job %s with data %s', job.id, JSON.stringify(job.data));
+    done(null, job.data.test);
 });
 
 for (var i = 0; i < 10; i++) {
-    worker.createJob('testJob', {}).save(function (err, job) {
-        console.log('save new job ', job);
+    worker.createJob('testJob', {test: i}).save(function (err, job) {
+        console.log('save new job %s and data %s', job.id, JSON.stringify(job.data));
     });
 }
