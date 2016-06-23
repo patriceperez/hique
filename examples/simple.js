@@ -6,7 +6,7 @@ worker.process('testJob', 5, function (job, done) {
     done(null, job.data.test);
 });
 
-for (var i = 0; i < 10; i++) {
+for (var i = 0; i < 13; i++) {
     worker.createJob('testJob', {test: i}).save(function (err, job) {
         console.log('save new job %s and data %s', job.id, JSON.stringify(job.data));
     });
