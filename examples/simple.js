@@ -3,6 +3,7 @@ var hq = require('../lib/hique');
 var worker = hq.Worker();
 worker.process('testJob', 5, function (job, done) {
     console.log('executed job %s with data %s', job.id, JSON.stringify(job.data));
+    job.reportProgress(1, 1);
     done(null, job.data.test);
 });
 
