@@ -9,7 +9,7 @@ describe('Worker', function () {
     var testWorker;
 
     beforeEach(function () {
-        testWorker = new Worker({});
+        testWorker = new Worker();
     });
 
     it('should construct default worker', function () {
@@ -60,10 +60,17 @@ describe('Worker', function () {
                 if (err) throw err;
 
                 assert.equal(job.id, existingJob.id, 'existing job id should be equal to the one created');
-                assert.equal(job.data, existingJob.data, 'existing job data should be equal to the one created');
+                assert.equal(JSON.stringify(job.data), JSON.stringify(existingJob.data), 'existing job data should be equal to the one created');
                 assert.equal(job.status, existingJob.status, 'existing job status should be equal to the one created');
                 done();
             });
+        });
+    });
+
+    it('should get all queues stats', function (done) {
+        testWorker.getStatus(function (err, result) {
+            assert.isNotNull(result, 'stats object cannot be NULL');
+            done(err);
         });
     });
 });
