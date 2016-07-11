@@ -37,7 +37,8 @@ describe('Job', function () {
                 type: 'testJob',
                 data: JSON.stringify({test: 1}),
                 status: 'created',
-                progress: 0
+                progress: 0,
+                err: null
             },
             'serialized object differs from the expected format');
     });

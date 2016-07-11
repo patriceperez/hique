@@ -37,16 +37,16 @@ describe('Worker', function () {
         assert.equal(testWorker.config, defaultConfig, 'config object does not equal to defaults');
     });
 
-    it('be active by default', function () {
+    it('should be active by default', function () {
         assert.isTrue(testWorker.active, 'active flag should be true');
     });
 
-    it('be pausable', function () {
+    it('should be pausable', function () {
         testWorker.pause();
         assert.isNotTrue(testWorker.active, 'active flag should be false after pausing');
     });
 
-    it('be able to resume from paused state', function () {
+    it('should be able to resume from paused state', function () {
         testWorker.pause();
         testWorker.start();
 
@@ -217,5 +217,23 @@ describe('Worker', function () {
             });
         });
         testWorker.createJob('testJobChildren2').save();
+    });
+
+    it('should crash job with unhandled exception', function (done) {
+        testWorker.process('crashingJob', function (job, crashingDone) {
+            throw(new Error('crashed due to unhandled exception'));
+        });
+
+        testWorker.createJob('crashingJob').save(function (err, job) {
+            var jobInterval = setInterval(function () {
+                testWorker.getJob(job.type, job.id, function (err, job) {
+                    if (job.status === 'crashed') {
+                        clearInterval(jobInterval);
+                        assert.equal(job.err, 'Error: crashed due to unhandled exception', 'error object should hold the details of the unhandled exception');
+                        done();
+                    }
+                });
+            }, 50);
+        });
     });
 });
