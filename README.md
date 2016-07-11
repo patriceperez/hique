@@ -52,6 +52,20 @@ for (var i = 0; i < 13; i++) {
 check out the [examples](https://github.com/patriceperez/hique/tree/master/examples) folder for more use cases
 
 ## API Reference
+### Table of Contents
+- [Worker](https://github.com/patriceperez/hique#worker)
+	- [Configuration](https://github.com/patriceperez/hique#configuration)
+	- [Processing Jobs](https://github.com/patriceperez/hique#processing-jobs)
+	- [Creating Jobs](https://github.com/patriceperez/hique#creating-jobs)
+	- [Pause / Resume](https://github.com/patriceperez/hique#pause)
+	- [Get Existing Job](https://github.com/patriceperez/hique#get-existing-job)
+	- [Get Completed Job Result](https://github.com/patriceperez/hique#get-completed-job-result)
+	- [Get System Status](https://github.com/patriceperez/hique#get-system-status)
+- [Job](https://github.com/patriceperez/hique#job)
+	- [Report Progress](https://github.com/patriceperez/hique#report-progress)
+	- [Add Child](https://github.com/patriceperez/hique#add-child)
+	- [Wait For Child Jobs](https://github.com/patriceperez/hique#wait-for-child-jobs)
+
 ### Worker
 #### Configuration
 ```javascript
