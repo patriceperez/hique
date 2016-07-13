@@ -4,7 +4,7 @@ feel free to contribute / open issues / create pull requests / fork, however use
 
 # Hique 
 [![Build Status](https://travis-ci.org/patriceperez/hique.svg?branch=master)](https://travis-ci.org/patriceperez/hique)
-[![Coverage Status](https://coveralls.io/repos/github/patriceperez/hique/badge.svg?branch=master)](https://coveralls.io/github/patriceperez/hique?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/patriceperez/hique/badge.svg?branch=master)](https://coveralls.io/github/patriceperez/hique?branch=master&dummy=1)
 
 hique is a redis-backed job queue for NodeJS.
 
