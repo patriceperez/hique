@@ -3,3 +3,5 @@ node_js:
   - "5"
 services:
   - redis-server
+after_success:
+  - coverage-travis
