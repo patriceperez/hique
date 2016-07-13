@@ -2,7 +2,7 @@
 
 feel free to contribute / open issues / create pull requests / fork, however use in production is highly discouraged
 
-# Hique
+# Hique ![Build Status](https://travis-ci.org/patriceperez/hique.svg?branch=master)
 hique is a redis-backed job queue for NodeJS.
 
 ## Introduction
