@@ -40,6 +40,3 @@ jspm_packages
 *.iml
 *.ipr
 *.iws
-
-# keep travis iml
-!.travis.iml
