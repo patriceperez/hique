@@ -14,7 +14,7 @@ describe('Job', function () {
 
     before(function clearRedisData() {
         testMonitor = new Monitor(_.merge(defaults, {redis: {options: {db: 1}}}));
-        testMonitor.redis.flushall();
+        testMonitor.redis.flushdb();
     });
 
     beforeEach(function getTestJob() {
@@ -22,7 +22,7 @@ describe('Job', function () {
     });
 
     after(function clearRedisData() {
-        testMonitor.redis.flushall();
+        testMonitor.redis.flushdb();
     });
 
     it('should initialize with no children', function () {

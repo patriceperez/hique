@@ -8,5 +8,9 @@ module.exports = {
             keyPrefix: 'hq'
         }
     },
+    cleanUp: {
+        active: true,
+        refreshRate: 60 * 60 * 1000
+    },
     refreshRate: 1000
 };

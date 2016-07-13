@@ -1,6 +1,6 @@
 {
   "name": "hique",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "redis backed job queue for nodejs",
   "main": "index.js",
   "scripts": {
