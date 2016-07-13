@@ -4,4 +4,4 @@ node_js:
 services:
   - redis-server
 after_success:
-  - coverage-travis
+  - npm run coverage-travis
