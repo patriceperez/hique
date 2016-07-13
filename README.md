@@ -3,6 +3,7 @@
 feel free to contribute / open issues / create pull requests / fork, however use in production is highly discouraged
 
 # Hique 
+[![npm version](https://badge.fury.io/js/hique.svg)](https://badge.fury.io/js/hique)
 [![Build Status](https://travis-ci.org/patriceperez/hique.svg?branch=master)](https://travis-ci.org/patriceperez/hique)
 [![Coverage Status](https://coveralls.io/repos/github/patriceperez/hique/badge.svg?branch=master)](https://coveralls.io/github/patriceperez/hique?branch=master&dummy=1)
 
