@@ -1,10 +1,6 @@
 var hq = require('../lib/hique');
 
-var worker = hq.Worker({
-    cleanUp: {
-        active: false
-    }
-});
+var worker = hq.Worker();
 
 worker.process('testJobParent', function (job, done) {
     for (var i = 0; i < 13; i++) {
