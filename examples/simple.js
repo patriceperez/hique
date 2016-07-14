@@ -12,3 +12,5 @@ for (var i = 0; i < 13; i++) {
         console.log('save new job %s and data %s', job.id, JSON.stringify(job.data));
     });
 }
+
+worker.start();
