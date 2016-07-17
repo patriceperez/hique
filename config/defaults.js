@@ -8,6 +8,9 @@ module.exports = {
             keyPrefix: 'hq'
         }
     },
+    job: {
+        ttl: 5 * 60
+    },
     cleanUp: {
         active: true,
         refreshRate: 60 * 60 * 1000
