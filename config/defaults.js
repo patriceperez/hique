@@ -13,7 +13,7 @@ module.exports = {
     },
     cleanUp: {
         active: true,
-        refreshRate: 60 * 60 * 1000
+        refreshRate: 5 * 60 * 1000
     },
     refreshRate: 1000
 };
