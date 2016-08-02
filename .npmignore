@@ -1,2 +1,5 @@
 /test/
 .travis.yml
+*.iml
+*.ipr
+*.iws
