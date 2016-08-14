@@ -22,7 +22,7 @@ describe('Worker', function () {
             });
         }, function (err) {
             if (err) console.log(err);
-            testWorker = new Worker({redis: {db: 1}, refreshRate: 40});
+            testWorker = new Worker({redis: {db: 1}, refreshRate: 100});
             testWorker.process('testJob', 10, function (job, jobDone) {
                 jobDone(null, {result: 1});
             });
