@@ -1,5 +1,6 @@
-var redisMock = require('redis-js');
 var chai = require('chai');
+var async = require('async');
+var redis = new require('ioredis')({db: 1});
 var assert = chai.assert;
 
 var defaultConfig = require('../config/defaults');
@@ -7,17 +8,27 @@ var defaultConfig = require('../config/defaults');
 var Worker = require('../lib/worker');
 
 describe('Worker', function () {
-    var testWorker;
+    var testWorker = null;
 
     beforeEach(function getTestWorker(done) {
-        testWorker = new Worker({redis: {db: 1}, refreshRate: 100});
-        testWorker.monitor.redis.flushdb(function (err) {
-            testWorker.process('testJob', 10, function (job, done) {
-                done(null, {result: 1});
+        async.during(function (callback) {
+            redis.keys('*', function (err, keys) {
+                //console.log('keys', keys.length);
+                callback(null, keys.length > 0);
+            });
+        }, function (callback) {
+            redis.flushall(function (err) {
+                callback(err);
+            });
+        }, function (err) {
+            if (err) console.log(err);
+            testWorker = new Worker({redis: {db: 1}, refreshRate: 40});
+            testWorker.process('testJob', 10, function (job, jobDone) {
+                jobDone(null, {result: 1});
             });
 
-            testWorker.process('testJob2', 20, function (job, done) {
-                done('fail');
+            testWorker.process('testJob2', 20, function (job, jobDone2) {
+                jobDone2('fail');
             });
 
             done();
@@ -58,7 +69,6 @@ describe('Worker', function () {
 
     it('should create a job with no data', function (done) {
         testWorker.createJob('testJob').save(function (err, job) {
-            if (err) throw err;
             assert.equal(JSON.stringify(job.data), '{}', 'data object should not be null when no data was supplied');
             done();
         });
@@ -112,7 +122,7 @@ describe('Worker', function () {
                 {type: 'testJob', available: 10},
                 {type: 'testJob2', available: 20}
             ]),
-            'testJob2 should have 2 free slot');
+            'testJob2 should have 20 free slot');
     });
 
     it('should create a valid done method for job processing', function (done) {
@@ -161,6 +171,7 @@ describe('Worker', function () {
             });
 
             testWorker.getJobResult(job.type, job.id, function (err, result) {
+                assert.isNull(err);
                 assert.deepEqual(result, {result: 1}, 'job did not execute properly');
                 done();
             });
@@ -168,7 +179,7 @@ describe('Worker', function () {
     });
 
     it('should fetch an empty result from a job without results', function (done) {
-        testWorker.createJob('testJob').save(function (err, job) {
+        testWorker.createJob('testJob2').save(function (err, job) {
             testWorker.getJobResult(job.type, job.id, function (err, result) {
                 assert.deepEqual(result, [], 'job did not execute properly');
                 done();
@@ -177,7 +188,6 @@ describe('Worker', function () {
     });
 
     it('should have no work to fetch when paused', function (done) {
-        testWorker.pause();
         testWorker.getWork(function (newJobs) {
             assert.deepEqual(newJobs, []);
             done();
@@ -235,10 +245,10 @@ describe('Worker', function () {
         testWorker.start();
     });
 
-    it('should clean up detached ids in queues', function (done) {
+    it('should clean up detached ids in redis queues', function (done) {
         testWorker.createJob('testJob').save(function (err, job) {
-            testWorker.createJob('testJob2').save(function (err, job) {
-                testWorker.monitor.redis.del('hq:testJob:jobs:1', function (err) {
+            testWorker.createJob('testJob2').save(function (err, childJob) {
+                testWorker.monitor.redis.del('hq:testJob:jobs:' + childJob.id, function (err) {
                     testWorker.cleanUp(function () {
                         testWorker.monitor.redis.get('hq:testJob:pending', function (err, result) {
                             assert.isNull(result, 'job id should not be present in pending queue once the job was removed');
@@ -248,5 +258,18 @@ describe('Worker', function () {
                 });
             });
         });
+    });
+
+    it('should remove expired job objects', function (done) {
+        testWorker.config.job.ttl = 0;
+        testWorker.process('testCleanUpJob', function (job, jobDone) {
+            assert.equal(testWorker.queues['testCleanUpJob'].jobs.length, 1, 'worker queue should contain 1 instance of \'testCleanUpJob\'');
+            testWorker.activeJobCleanUp();
+            assert.equal(testWorker.queues['testCleanUpJob'].jobs.length, 0, 'worker queue should contain no instance of \'testCleanUpJob\' after clean up');
+            jobDone();
+            done();
+        });
+        testWorker.start();
+        testWorker.createJob('testCleanUpJob').save();
     });
 });

@@ -89,4 +89,40 @@ describe('Job', function () {
             });
         });
     });
+
+    it('should execute properly', function (done) {
+        new Job('testJob', null, testMonitor).save(function (err, job) {
+            testJob.execute(function (job, jobDone) {
+                assert.equal(testJob.status, 'active', 'job status should be active when executing');
+                assert.isFunction(testJob.logic, 'job logic function should be instantiated');
+                assert.isAtMost(testJob.startTime, Date.now(), 'job start time should be instantiated and at most now');
+
+                jobDone();
+                done();
+            }, function (err, result) {
+            });
+        });
+    });
+
+    it('should not expire when created', function (done) {
+        new Job('testJob', null, testMonitor).save(function (err, job) {
+            job.execute(function () {
+            }, function () {
+            });
+            assert.isFalse(job.expired());
+            done();
+        });
+    });
+
+    it('should expire when ttl was reached', function (done) {
+        new Job('testJob', null, testMonitor).save(function (err, job) {
+            job.execute(function () {
+                testJob.monitor.config.job.ttl = 0;
+                assert.isTrue(job.expired());
+                testJob.monitor.config.job.ttl = 5 * 60;
+                done();
+            }, function () {
+            });
+        });
+    });
 });
