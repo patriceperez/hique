@@ -1,7 +1,7 @@
 {
   "name": "hique",
-  "version": "0.8.0",
-  "description": "redis backed job queue for nodejs",
+  "version": "0.9.1",
+  "description": "job queue for nodejs",
   "main": "index.js",
   "scripts": {
     "test": "mocha test --recursive",
@@ -17,7 +17,6 @@
     "queue",
     "job",
     "worker",
-    "redis",
     "distributed"
   ],
   "author": "Patrice Perez <perezpatrice@gmail.com>",
@@ -34,7 +33,9 @@
   "homepage": "https://github.com/patriceperez/hique#readme",
   "dependencies": {
     "ioredis": "^2.0.1",
-    "lodash": "^4.13.1"
+    "lodash": "^4.13.1",
+    "socket.io": "^1.4.8",
+    "socket.io-client": "^1.4.8"
   },
   "devDependencies": {
     "chai": "^3.5.0",

@@ -3,36 +3,35 @@ var async = require('async');
 var redis = new require('ioredis')({db: 1});
 var assert = chai.assert;
 
+process.env.DEBUG = '*';
+
 var defaultConfig = require('../config/defaults');
 
 var Worker = require('../lib/worker');
+var Monitor = require('../lib/monitor');
 
 describe('Worker', function () {
-    var testWorker = null;
+    var testWorker = null, testMonitor = null;
 
-    beforeEach(function getTestWorker(done) {
-        async.during(function (callback) {
-            redis.keys('*', function (err, keys) {
-                //console.log('keys', keys.length);
-                callback(null, keys.length > 0);
-            });
-        }, function (callback) {
-            redis.flushall(function (err) {
-                callback(err);
-            });
-        }, function (err) {
-            if (err) console.log(err);
-            testWorker = new Worker({redis: {db: 1}, refreshRate: 100});
-            testWorker.process('testJob', 10, function (job, jobDone) {
-                jobDone(null, {result: 1});
-            });
+    before(function () {
+        testMonitor = new Monitor();
+        testMonitor.start();
+        defaultConfig.refreshRate = 10;
+    });
 
-            testWorker.process('testJob2', 20, function (job, jobDone2) {
-                jobDone2('fail');
-            });
+    beforeEach(function getTestWorker() {
+        testMonitor.clear();
+        testWorker = new Worker({refreshRate: 10});
+    });
 
-            done();
-        });
+    afterEach(function (done) {
+        testWorker.stop(done);
+    });
+
+    after(function () {
+        testMonitor.stop();
+        testMonitor = null;
+        testWorker = null;
     });
 
     it('should construct default worker', function () {
@@ -40,15 +39,11 @@ describe('Worker', function () {
     });
 
     it('should construct default worker monitor', function () {
-        assert.isNotNull(testWorker.monitor, 'worker monitor object is NULL');
-    });
-
-    it('should construct default worker job', function () {
-        assert.isNotNull(testWorker, 'worker job object is NULL');
+        assert.isNotNull(testMonitor, 'worker monitor object is NULL');
     });
 
     it('should contain default config', function () {
-        assert.equal(testWorker.config, defaultConfig, 'config object does not equal to defaults');
+        assert.deepEqual(testWorker.config, defaultConfig, 'config object does not equal to defaults');
     });
 
     it('should not be active by default', function () {
@@ -68,77 +63,118 @@ describe('Worker', function () {
     });
 
     it('should create a job with no data', function (done) {
-        testWorker.createJob('testJob').save(function (err, job) {
-            assert.equal(JSON.stringify(job.data), '{}', 'data object should not be null when no data was supplied');
-            done();
-        });
-    });
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
 
-    it('should get an existing job object', function (done) {
-        testWorker.createJob('testJob').save(function (err, job) {
-            if (err) throw err;
-
-            testWorker.getJob('testJob', job.id, function (err, existingJob) {
-                if (err) throw err;
-
-                assert.equal(job.id, existingJob.id, 'existing job id should be equal to the one created');
-                assert.equal(JSON.stringify(job.data), JSON.stringify(existingJob.data), 'existing job data should be equal to the one created');
-                assert.equal(job.status, existingJob.status, 'existing job status should be equal to the one created');
+            worker.createJob('testJob', {}, function (job) {
+                assert.equal(JSON.stringify(job.data), '{}', 'data object should not be null when no data was supplied');
                 done();
             });
         });
     });
 
-    it('should get all queues stats', function (done) {
-        testWorker.getStatus(function (err, result) {
-            assert.isNotNull(result, 'stats object cannot be NULL');
-            done(err);
+    it('should get an existing job object', function (done) {
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
+
+            worker.createJob('testJob', {}, function (job) {
+                worker.getJob('testJob', 1, function (existingJob) {
+                    assert.deepEqual(job, existingJob, 'existing job should be equal to created job');
+                    done();
+                });
+            });
         });
     });
 
-    it('should know how to process jobs of type \'testJob\'', function () {
-        assert.isDefined(testWorker.queues['testJob'], 'no definition for \'testJob\' exists');
-        assert.equal(testWorker.queues['testJob'].concurrency, 10, 'default concurrency definition should be 1');
+    it('should get all queues stats', function (done) {
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
+
+            worker.process('testJob2', function (job, jobDone) {
+                jobDone();
+            });
+
+            worker.getStats(function (stats) {
+                assert.deepEqual(stats, [{type: 'testJob', active: 0, pending: 0, success: 0, failed: 0},
+                    {
+                        type: 'testJob2',
+                        active: 0,
+                        pending: 0,
+                        success: 0,
+                        failed: 0
+                    }], 'stats object should contain 2 queues');
+                done();
+            });
+        });
+    });
+
+    it('should know how to process jobs of type \'testJob\'', function (done) {
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
+
+            assert.isDefined(worker.queues['testJob'], 'no definition for \'testJob\' exists');
+            assert.equal(worker.queues['testJob'].concurrency, 1, 'default concurrency definition should be 1');
+            done();
+        });
     });
 
     it('should calculate free work slots', function () {
-        var slots = testWorker.getFreeSlots();
-        assert.equal(
-            JSON.stringify(slots),
-            JSON.stringify([{type: 'testJob', available: 10}, {"type": "testJob2", "available": 20}]),
-            'testJob should have 10 free slots, testJob2 should have 20 free slots');
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
+
+            var slots = worker.getFreeSlots();
+            assert.deepEqual(slots, [{type: 'testJob', available: 1}], 'testJob should have 1 free slots');
+        });
     });
 
     it('should process concurrency correctly', function () {
-        testWorker.process('testJob2', 20, function (job, done) {
-            done();
+        testWorker.ready(function (worker) {
+            worker.process('testJob', 10, function (job, jobDone) {
+                jobDone();
+            });
+
+            var slots = worker.getFreeSlots();
+            assert.equal(
+                JSON.stringify(slots),
+                JSON.stringify([{type: 'testJob', available: 10}]),
+                'testJob should have 10 free slots');
         });
-
-        var slots = testWorker.getFreeSlots();
-
-        assert.equal(
-            JSON.stringify(slots),
-            JSON.stringify([
-                {type: 'testJob', available: 10},
-                {type: 'testJob2', available: 20}
-            ]),
-            'testJob2 should have 20 free slot');
     });
 
     it('should create a valid done method for job processing', function (done) {
-        testWorker.createJob('testJob').save(function (err, job) {
-            var doneMethod = testWorker.createDoneMethod(job);
+        testWorker.ready(function (worker) {
+            worker.process('testJob', 10, function (job, jobDone) {
+                jobDone();
+            });
 
-            assert.isFunction(doneMethod, 'done method must be a function');
-            done();
+            worker.createJob('testJob', {}, function (job) {
+                var doneMethod = worker.createDoneMethod(job);
+
+                assert.isFunction(doneMethod, 'done method must be a function');
+                done();
+            });
         });
     });
 
     it('should create a done method for failed job processing', function (done) {
-        testWorker.createJob('testJob2').save(function (err, job) {
-            testWorker.getWork(function () {
-                var doneMethod = testWorker.createDoneMethod(job, function () {
-                    testWorker.getJob(job.type, job.id, function (err, doneJob) {
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
+
+            worker.createJob('testJob', {}, function (job) {
+                var doneMethod = worker.createDoneMethod(job, function () {
+                    testWorker.getJob(job.type, job.id, function (doneJob) {
                         assert.equal(doneJob.status, 'failed', 'job should fail when providing done method with an error');
                         done();
                     });
@@ -150,11 +186,15 @@ describe('Worker', function () {
     });
 
     it('should create a done method for successful job processing', function (done) {
-        testWorker.createJob('testJob').save(function (err, job) {
-            testWorker.getWork(function () {
-                var doneMethod = testWorker.createDoneMethod(job, function () {
-                    testWorker.getJob(job.type, job.id, function (err, doneJob) {
-                        assert.equal(doneJob.status, 'completed', 'job should succeed when providing done method without an error');
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
+
+            worker.createJob('testJob', {}, function (job) {
+                var doneMethod = worker.createDoneMethod(job, function () {
+                    testWorker.getJob(job.type, job.id, function (doneJob) {
+                        assert.equal(doneJob.status, 'success', 'job should succeed when providing proper done method');
                         done();
                     });
                 });
@@ -165,111 +205,119 @@ describe('Worker', function () {
     });
 
     it('should fetch a job result', function (done) {
-        testWorker.createJob('testJob').save(function (err, job) {
-            testWorker.executeJob(job, function (job, jobDone) {
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (innerJob, jobDone) {
                 jobDone(null, {result: 1});
             });
 
-            testWorker.getJobResult(job.type, job.id, function (err, result) {
-                assert.isNull(err);
-                assert.deepEqual(result, {result: 1}, 'job did not execute properly');
-                done();
+            worker.createJob('testJob', {}, function (job) {
+                var jobStatusCheck = setInterval(function () {
+                    worker.getJob(job.type, job.id, function (innerJob) {
+                        if (innerJob.status === 'success') {
+                            clearInterval(jobStatusCheck);
+                            worker.getJobResult(innerJob.type, innerJob.id, function (result) {
+                                assert.deepEqual(result, {result: 1}, 'job did not execute properly');
+                                done();
+                            });
+                        }
+                    });
+                }, 20);
             });
+
+            worker.start();
         });
     });
 
     it('should fetch an empty result from a job without results', function (done) {
-        testWorker.createJob('testJob2').save(function (err, job) {
-            testWorker.getJobResult(job.type, job.id, function (err, result) {
-                assert.deepEqual(result, [], 'job did not execute properly');
-                done();
+        testWorker.ready(function (worker) {
+            worker.createJob('testJob2', {}, function (job) {
+                worker.getJobResult(job.type, job.id, function (result) {
+                    assert.deepEqual(result, [], 'job did not execute properly');
+                    done();
+                });
             });
-        });
-    });
-
-    it('should have no work to fetch when paused', function (done) {
-        testWorker.getWork(function (newJobs) {
-            assert.deepEqual(newJobs, []);
-            done();
         });
     });
 
     it('should wait for all child jobs to complete', function (done) {
-        testWorker.process('testJobChildren', function (job, jobDone) {
-            testWorker.createJob('testJob').save(function (err, childJob) {
-                job.addChild(childJob);
-
-                job.waitForChildren(function (err, result) {
-                    assert.deepEqual(result, [{result: 1}]);
-                    jobDone();
-                    done();
-                });
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (innerJob, jobDone) {
+                jobDone(null, {result: 2});
             });
-        });
-        testWorker.createJob('testJobChildren').save();
-        testWorker.start();
-    });
 
-    it('should wait for all child jobs to fail', function (done) {
-        testWorker.process('testJobChildren2', function (job, jobDone) {
-            testWorker.createJob('testJob2').save(function (err, childJob) {
-                job.addChild(childJob);
+            worker.process('testJobChildren', function (job, jobDone) {
+                worker.createJob('testJob', {}, function (childJob) {
+                    job.addChild(childJob);
 
-                job.waitForChildren(function (err, result) {
-                    assert.deepEqual(result, []);
-                    jobDone();
-                    done();
-                });
-            });
-        });
-        testWorker.createJob('testJobChildren2').save();
-        testWorker.start();
-    });
-
-    it('should crash job with unhandled exception', function (done) {
-        testWorker.process('crashingJob', function (job, crashingDone) {
-            throw(new Error('crashed due to unhandled exception'));
-        });
-
-        testWorker.createJob('crashingJob').save(function (err, job) {
-            var jobInterval = setInterval(function () {
-                testWorker.getJob(job.type, job.id, function (err, job) {
-                    if (job.status === 'crashed') {
-                        clearInterval(jobInterval);
-                        assert.equal(job.err, 'Error: crashed due to unhandled exception', 'error object should hold the details of the unhandled exception');
+                    job.waitForChildren(function (result) {
+                        assert.deepEqual(result, [{result: 2}]);
+                        jobDone();
                         done();
-                    }
-                });
-            }, 50);
-        });
-        testWorker.start();
-    });
-
-    it('should clean up detached ids in redis queues', function (done) {
-        testWorker.createJob('testJob').save(function (err, job) {
-            testWorker.createJob('testJob2').save(function (err, childJob) {
-                testWorker.monitor.redis.del('hq:testJob:jobs:' + childJob.id, function (err) {
-                    testWorker.cleanUp(function () {
-                        testWorker.monitor.redis.get('hq:testJob:pending', function (err, result) {
-                            assert.isNull(result, 'job id should not be present in pending queue once the job was removed');
-                            done();
-                        });
                     });
                 });
             });
+            worker.createJob('testJobChildren', {});
+            worker.start();
+        });
+    });
+
+    it('should wait for all child jobs to fail', function (done) {
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone('error');
+            });
+
+            worker.process('testJobChildren', function (job, jobDone) {
+                worker.createJob('testJob', {}, function (childJob) {
+                    job.addChild(childJob);
+
+                    job.waitForChildren(function (result) {
+                        assert.deepEqual(result, [[]]);
+                        jobDone();
+                        done();
+                    });
+                });
+            });
+            worker.createJob('testJobChildren', {});
+            worker.start();
+        });
+    });
+
+    it('should crash job with unhandled exception', function (done) {
+        testWorker.ready(function (worker) {
+            worker.process('crashingJob', function (job, jobDone) {
+                throw(new Error('crashed due to unhandled exception'));
+            });
+
+            worker.createJob('crashingJob', {}, function (job) {
+                var jobInterval = setInterval(function () {
+                    testWorker.getJob(job.type, job.id, function (updatedJob) {
+                        if (updatedJob.status === 'crashed') {
+                            clearInterval(jobInterval);
+                            assert.equal(updatedJob.err, 'Error: crashed due to unhandled exception', 'error object should hold the details of the unhandled exception');
+                            done();
+                        }
+                    });
+                }, 100);
+            });
+
+            worker.start();
         });
     });
 
     it('should remove expired job objects', function (done) {
         testWorker.config.job.ttl = 0;
-        testWorker.process('testCleanUpJob', function (job, jobDone) {
-            assert.equal(testWorker.queues['testCleanUpJob'].jobs.length, 1, 'worker queue should contain 1 instance of \'testCleanUpJob\'');
-            testWorker.activeJobCleanUp();
-            assert.equal(testWorker.queues['testCleanUpJob'].jobs.length, 0, 'worker queue should contain no instance of \'testCleanUpJob\' after clean up');
-            jobDone();
-            done();
+        testWorker.ready(function (worker) {
+            worker.process('testCleanUpJob', function (job, jobDone) {
+                assert.equal(worker.queues['testCleanUpJob'].jobs.length, 1, 'worker queue should contain 1 instance of \'testCleanUpJob\'');
+                worker.activeJobCleanUp();
+                assert.equal(worker.queues['testCleanUpJob'].jobs.length, 0, 'worker queue should contain no instance of \'testCleanUpJob\' after clean up');
+                jobDone();
+                done();
+            });
+
+            worker.start();
+            worker.createJob('testCleanUpJob');
         });
-        testWorker.start();
-        testWorker.createJob('testCleanUpJob').save();
     });
 });
