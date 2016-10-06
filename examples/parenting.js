@@ -1,15 +1,18 @@
 var hq = require('../lib/hique');
 
-var worker = hq.Worker();
+var monitor = new hq.Monitor();
+var worker = new hq.Worker();
+
+monitor.start();
 
 worker.process('testJobParent', function (job, done) {
     for (var i = 0; i < 13; i++) {
-        worker.createJob('testJob', {test: i}).save(function (err, childJob) {
+        worker.createJob('testJob', {test: i}, function (childJob) {
             job.addChild(childJob);
         });
     }
 
-    job.waitForChildren(function (err, results) {
+    job.waitForChildren(function (results) {
         console.log('parent done with results from children', results);
         done();
         process.exit();
@@ -23,7 +26,7 @@ worker.process('testJob', 5, function (job, done) {
     done(null, job.data);
 });
 
-worker.createJob('testJobParent').save(function (err, job) {
+worker.createJob('testJobParent', {}, function (job) {
     console.log('save new parent job %s and data %s', job.id, JSON.stringify(job.data));
 });
 
