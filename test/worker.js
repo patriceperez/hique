@@ -320,4 +320,27 @@ describe('Worker', function () {
             worker.createJob('testCleanUpJob');
         });
     });
+
+    it('should remove job from monitor on success', function (done) {
+        testWorker.ready(function (worker) {
+            worker.process('removedJob', function (job, jobDone) {
+                jobDone();
+            }, true);
+
+            worker.createJob('removedJob', {}, function (job) {
+                var jobInterval = setInterval(function () {
+                    testWorker.getJob(job.type, job.id, function (updatedJob) {
+                        console.log(updatedJob);
+                        if (updatedJob.err === 'No job found matching the criteria (type: removedJob, id: 1)') {
+                            clearInterval(jobInterval);
+                            assert.equal(updatedJob.err, 'No job found matching the criteria (type: removedJob, id: 1)');
+                            done();
+                        }
+                    });
+                }, 100);
+            });
+
+            worker.start();
+        });
+    });
 });
