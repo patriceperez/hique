@@ -1,6 +1,6 @@
 {
   "name": "hique",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "job queue for nodejs",
   "main": "index.js",
   "scripts": {
