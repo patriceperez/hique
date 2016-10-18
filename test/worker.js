@@ -1,6 +1,5 @@
 var chai = require('chai');
 var async = require('async');
-var redis = new require('ioredis')({db: 1});
 var assert = chai.assert;
 
 process.env.DEBUG = '*';
@@ -272,7 +271,7 @@ describe('Worker', function () {
                     job.addChild(childJob);
 
                     job.waitForChildren(function (result) {
-                        assert.deepEqual(result, [[]]);
+                        assert.deepEqual(result, []);
                         jobDone();
                         done();
                     });
@@ -330,7 +329,6 @@ describe('Worker', function () {
             worker.createJob('removedJob', {}, function (job) {
                 var jobInterval = setInterval(function () {
                     testWorker.getJob(job.type, job.id, function (updatedJob) {
-                        console.log(updatedJob);
                         if (updatedJob.err === 'No job found matching the criteria (type: removedJob, id: 1)') {
                             clearInterval(jobInterval);
                             assert.equal(updatedJob.err, 'No job found matching the criteria (type: removedJob, id: 1)');
