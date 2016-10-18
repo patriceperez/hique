@@ -175,6 +175,7 @@ describe('Worker', function () {
                 var doneMethod = worker.createDoneMethod(job, function () {
                     testWorker.getJob(job.type, job.id, function (doneJob) {
                         assert.equal(doneJob.status, 'failed', 'job should fail when providing done method with an error');
+                        assert.equal(doneJob.err, 'error', 'error should reflect the message input in done method');
                         done();
                     });
                 });
