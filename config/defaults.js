@@ -9,7 +9,7 @@ module.exports = {
         }
     },
     job: {
-        ttl: 5 * 60
+        ttl: 5 * 60 * 1000
     },
     cleanUp: {
         active: true,
