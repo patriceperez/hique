@@ -76,8 +76,8 @@ check out the [examples](https://github.com/patriceperez/hique/tree/master/examp
 	- [Wait For Child Jobs](#wait-for-child-jobs)
 - [Monitoring](#monitoring)
     - [Data Store](#data-store)
-    - [Native - In Memory](#native-in-memory)
-    - [Creating Your Own Data Store](#createing-data-store)
+    - [Native - In Memory](#native---in-memory)
+    - [Creating Your Own Data Store](#creating-your-own-data-store)
 
 ### Worker
 #### Configuration
