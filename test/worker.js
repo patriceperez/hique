@@ -1,8 +1,5 @@
 var chai = require('chai');
-var async = require('async');
 var assert = chai.assert;
-
-process.env.DEBUG = '*';
 
 var defaultConfig = require('../config/defaults');
 
@@ -100,14 +97,16 @@ describe('Worker', function () {
             });
 
             worker.getStats(function (stats) {
-                assert.deepEqual(stats, [{type: 'testJob', active: 0, pending: 0, success: 0, failed: 0},
+                assert.deepEqual(stats, [
+                    {type: 'testJob', active: 0, pending: 0, success: 0, failed: 0},
                     {
                         type: 'testJob2',
                         active: 0,
                         pending: 0,
                         success: 0,
                         failed: 0
-                    }], 'stats object should contain 2 queues');
+                    }
+                ], 'stats object should contain 2 queues');
                 done();
             });
         });
@@ -132,7 +131,9 @@ describe('Worker', function () {
             });
 
             var slots = worker.getFreeSlots();
-            assert.deepEqual(slots, [{type: 'testJob', available: 1}], 'testJob should have 1 free slots');
+            assert.deepEqual(slots, [
+                {type: 'testJob', available: 1}
+            ], 'testJob should have 1 free slots');
         });
     });
 
@@ -145,7 +146,9 @@ describe('Worker', function () {
             var slots = worker.getFreeSlots();
             assert.equal(
                 JSON.stringify(slots),
-                JSON.stringify([{type: 'testJob', available: 10}]),
+                JSON.stringify([
+                    {type: 'testJob', available: 10}
+                ]),
                 'testJob should have 10 free slots');
         });
     });
@@ -249,7 +252,9 @@ describe('Worker', function () {
                     job.addChild(childJob);
 
                     job.waitForChildren(function (result) {
-                        assert.deepEqual(result, [{result: 2}]);
+                        assert.deepEqual(result, [
+                            {result: 2}
+                        ]);
                         jobDone();
                         done();
                     });
