@@ -234,9 +234,10 @@ Since the heap is limited to about 1.2G by default (per process) it can be switc
 
 ### Creating Your Own Data Store
 In order to create your own data store please follow these simple steps:
-1. add a javascript file under the `lib/adapters` directory
-2. copy the code from `stub.js` in order to get the interface of all adapters
-3. implement all functions (refer to the `native.js` for more details about how to invoke the correct data in callbacks)
-4. add any default configuration values to `config/default.js` under the `adapter` key to be passed at initialization, this will allow to pass a config object at runtime for specific hosts, ports, etc`
+
+1. Add a javascript file under the `lib/adapters` directory
+2. Copy the code from `stub.js` in order to get the interface of all adapters
+3. Implement all functions (refer to the `native.js` for more details about how to invoke the correct data in callbacks)
+4. Add any default configuration values to `config/default.js` under the `adapter` key to be passed at initialization, this will allow to pass a config object at runtime for specific hosts, ports, etc`
 
 - If you have written an adapter, Don`t be shy! - share it with everyone here, programmers will get an additional way to use hique, and you will gain the power of the masses in discovering bugs and issues 
