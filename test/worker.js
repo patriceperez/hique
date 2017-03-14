@@ -98,13 +98,14 @@ describe('Worker', function () {
 
             worker.getStats(function (stats) {
                 assert.deepEqual(stats, [
-                    {type: 'testJob', active: 0, pending: 0, success: 0, failed: 0},
+                    {type: 'testJob', active: 0, pending: 0, success: 0, failed: 0, avg_duration: 0},
                     {
                         type: 'testJob2',
                         active: 0,
                         pending: 0,
                         success: 0,
-                        failed: 0
+                        failed: 0,
+                        avg_duration: 0
                     }
                 ], 'stats object should contain 2 queues');
                 done();
@@ -206,6 +207,25 @@ describe('Worker', function () {
         });
     });
 
+    it('should report correct job end time', function (done) {
+        testWorker.ready(function (worker) {
+            worker.process('testJob', function (job, jobDone) {
+                jobDone();
+            });
+
+            worker.createJob('testJob', {}, function (job) {
+                var doneMethod = worker.createDoneMethod(job, function () {
+                    testWorker.getJob(job.type, job.id, function (doneJob) {
+                        assert.isNotNull(doneJob.endTime, 'job should succeed when providing proper done method');
+                        done();
+                    });
+                });
+
+                doneMethod();
+            });
+        });
+    });
+
     it('should fetch a job result', function (done) {
         testWorker.ready(function (worker) {
             worker.process('testJob', function (innerJob, jobDone) {
@@ -276,7 +296,6 @@ describe('Worker', function () {
                     job.addChild(childJob);
 
                     job.waitForChildren(function (result) {
-                        assert.deepEqual(result, []);
                         jobDone();
                         done();
                     });
