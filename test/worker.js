@@ -98,15 +98,8 @@ describe('Worker', function () {
 
             worker.getStats(function (stats) {
                 assert.deepEqual(stats, [
-                    {type: 'testJob', active: 0, pending: 0, success: 0, failed: 0, avg_duration: 0},
-                    {
-                        type: 'testJob2',
-                        active: 0,
-                        pending: 0,
-                        success: 0,
-                        failed: 0,
-                        avg_duration: 0
-                    }
+                    {type: 'testJob', active: 0, pending: 0, success: 0, failed: 0, avg_duration: null},
+                    {type: 'testJob2', active: 0, pending: 0, success: 0, failed: 0, avg_duration: null}
                 ], 'stats object should contain 2 queues');
                 done();
             });
