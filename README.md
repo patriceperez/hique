@@ -1,14 +1,10 @@
-# Beta is live!
-
-feel free to contribute / open issues / create pull requests / fork, 
-however use in production at your own risk as bugs are bound to happen
-
 # Hique 
 [![npm version](https://badge.fury.io/js/hique.svg)](https://badge.fury.io/js/hique)
 [![Build Status](https://travis-ci.org/patriceperez/hique.svg?branch=master)](https://travis-ci.org/patriceperez/hique)
 [![Coverage Status](https://coveralls.io/repos/github/patriceperez/hique/badge.svg?branch=master)](https://coveralls.io/github/patriceperez/hique?branch=master&dummy=1)
-
 hique is a job queue for NodeJS.
+
+feel free to contribute / open issues / create pull requests / fork
 
 ## Introduction
 hique is heavily inspired by [kue](https://github.com/Automattic/kue) and [bee-queue](https://github.com/LewisJEllis/bee-queue), and after using both frameworks pretty extensively I found that, though very well written, these frameworks do not fulfill two of my  most desired aspects in:
