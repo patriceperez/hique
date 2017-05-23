@@ -30,4 +30,4 @@ npm install git+https://github.com/patriceperez/hique.git
 ```
 
 ## Getting Started
-For all setup and technical usage information please consult the [wiki](https://github.com/patriceperez/hique/wiki)
+For all setup and technical usage information please consult the [wiki](https://github.com/patriceperez/hique/wiki/1.-Home)
